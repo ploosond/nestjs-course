@@ -1,99 +1,58 @@
 import { Injectable } from '@nestjs/common';
+import { Role, User } from 'generated/prisma';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  private users = [
-    {
-      id: 1,
-      name: 'Alice Johnson',
-      email: 'alice.johnson@example.com',
-      role: 'INTERN',
-    },
-    {
-      id: 2,
-      name: 'Bob Smith',
-      email: 'bob.smith@example.com',
-      role: 'ENGINEER',
-    },
-    {
-      id: 3,
-      name: 'Carol White',
-      email: 'carol.white@example.com',
-      role: 'ADMIN',
-    },
-    {
-      id: 4,
-      name: 'David Lee',
-      email: 'david.lee@example.com',
-      role: 'ENGINEER',
-    },
-    {
-      id: 5,
-      name: 'Emma Davis',
-      email: 'emma.davis@example.com',
-      role: 'INTERN',
-    },
-    {
-      id: 6,
-      name: 'Frank Brown',
-      email: 'frank.brown@example.com',
-      role: 'ADMIN',
-    },
-  ];
+  constructor(private prisma: PrismaService) {}
 
-  findAll(role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
+  async findAll(role?: Role) {
     if (role) {
-      return this.users.filter((user) => user.role === role);
+      // return this.users.filter((user) => user.role === role);
+      return await this.prisma.user.findMany({
+        where: {
+          role,
+        },
+      });
     }
-    return this.users;
+    return await this.prisma.user.findMany();
   }
 
-  findOne(id: number) {
-    const user = this.users.find((user) => user.id === id);
+  async findOne(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
 
     return user;
   }
 
-  create(user: {
-    name: string;
-    email: string;
-    role: 'INTERN' | 'ENGINEER' | 'ADMIN';
-  }) {
-    const usersByHighestId = [...this.users].sort((a, b) => b.id - a.id);
-    const newUser = {
-      id: usersByHighestId[0].id + 1,
-      ...user,
-    };
-
-    this.users.push(newUser);
+  async create(user: User) {
+    const newUser = await this.prisma.user.create({
+      data: user,
+    });
 
     return newUser;
   }
 
-  update(
-    id: number,
-    updatedUser: {
-      name?: string;
-      email?: string;
-      role?: 'INTERN' | 'ENGINEER' | 'ADMIN';
-    },
-  ) {
-    this.users = this.users.map((user) => {
-      if (user.id === id) {
-        return { ...user, ...updatedUser };
-      }
-
-      return user;
+  async update(id: string, updateUser: User) {
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: updateUser,
     });
-
-    return this.findOne(id);
+    return updatedUser;
   }
 
-  delete(id: number) {
-    const removedUser = this.findOne(id);
+  delete(id: string) {
+    const deletedUser = this.prisma.user.delete({
+      where: {
+        id,
+      },
+    });
 
-    this.users = this.users.filter((user) => user.id !== id);
-
-    return removedUser;
+    return deletedUser;
   }
 }

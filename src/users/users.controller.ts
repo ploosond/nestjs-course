@@ -9,29 +9,26 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { Role, User } from 'generated/prisma';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get() //GET /users or /users?role=value
-  findAll(@Query('role') role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
+  findAll(@Query('role') role?: Role) {
     return this.usersService.findAll(role);
   }
 
   @Get(':id') //GET /users:id
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+    return this.usersService.findOne(id);
   }
 
   @Post() //POST /users
   create(
     @Body()
-    user: {
-      name: string;
-      email: string;
-      role: 'INTERN' | 'ENGINEER' | 'ADMIN';
-    },
+    user: User,
   ) {
     return this.usersService.create(user);
   }
@@ -40,17 +37,13 @@ export class UsersController {
   update(
     @Param('id') id: string,
     @Body()
-    updateUser: {
-      name: string;
-      email: string;
-      role: 'INTERN' | 'ENGINEER' | 'ADMIN';
-    },
+    updateUser: User,
   ) {
-    return this.usersService.update(+id, updateUser);
+    return this.usersService.update(id, updateUser);
   }
 
   @Delete(':id') //DELETE /users/:id
   delete(@Param('id') id: string) {
-    return this.usersService.delete(+id);
+    return this.usersService.delete(id);
   }
 }

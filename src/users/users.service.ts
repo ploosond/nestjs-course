@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Role, User } from 'generated/prisma';
+import { Role } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
@@ -8,12 +11,21 @@ export class UsersService {
 
   async findAll(role?: Role) {
     if (role) {
+      if (!Object.values(Role).includes(role as Role)) {
+        throw new NotFoundException(`Invalid role ${role}`);
+      }
       // return this.users.filter((user) => user.role === role);
-      return await this.prisma.user.findMany({
+      const rolesArray = await this.prisma.user.findMany({
         where: {
           role,
         },
       });
+
+      if (rolesArray.length === 0) {
+        throw new NotFoundException('No users found with the specified role');
+      }
+
+      return rolesArray;
     }
     return await this.prisma.user.findMany();
   }
@@ -25,23 +37,25 @@ export class UsersService {
       },
     });
 
+    if (!user) throw new NotFoundException('User not found!');
+
     return user;
   }
 
-  async create(user: User) {
+  async create(createUserDto: CreateUserDto) {
     const newUser = await this.prisma.user.create({
-      data: user,
+      data: createUserDto,
     });
 
     return newUser;
   }
 
-  async update(id: string, updateUser: User) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     const updatedUser = await this.prisma.user.update({
       where: {
         id,
       },
-      data: updateUser,
+      data: updateUserDto,
     });
     return updatedUser;
   }

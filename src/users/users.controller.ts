@@ -7,9 +7,12 @@ import {
   Patch,
   Post,
   Query,
+  ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { Role, User } from 'generated/prisma';
+import { Role } from 'generated/prisma';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -27,19 +30,19 @@ export class UsersController {
 
   @Post() //POST /users
   create(
-    @Body()
-    user: User,
+    @Body(ValidationPipe)
+    createUserDto: CreateUserDto,
   ) {
-    return this.usersService.create(user);
+    return this.usersService.create(createUserDto);
   }
 
   @Patch(':id') //PATCH /users:id
   update(
     @Param('id') id: string,
-    @Body()
-    updateUser: User,
+    @Body(ValidationPipe)
+    updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(id, updateUser);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id') //DELETE /users/:id
